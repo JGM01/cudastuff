@@ -20,6 +20,7 @@
 // this gets ran per thread (a lot)
 __global__ void vecAddKernel(float *a, float *b, float *c, int n)
 {
+	// this is a leetgpu problem (first one)
 	int globalIdx = threadIdx.x + blockIdx.x * blockDim.x;
 	if (globalIdx < n)
 	{
