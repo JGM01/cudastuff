@@ -18,26 +18,30 @@
 // this basically gets the index by jumping through the giant array by how many blocks/how large each block is + the thread index
 
 // this gets ran per thread (a lot)
-__global__
-void vecAddKernel(float* a, float* b, float* c, int n) {
+__global__ void vecAddKernel(float *a, float *b, float *c, int n)
+{
 	int globalIdx = threadIdx.x + blockIdx.x * blockDim.x;
-	c[globalIdx] = a[globalIdx] + b[globalIdx];
+	if (globalIdx < n)
+	{
+		c[globalIdx] = a[globalIdx] + b[globalIdx];
+	}
 }
 
-void vecAdd(std::vector<float> a_h, std::vector<float> b_h, std::vector<float> c_h) {
+void vecAdd(std::vector<float> a_h, std::vector<float> b_h, std::vector<float> c_h)
+{
 	size_t n = c_h.size();
 
-	float* a_d;
-	float* b_d;
-	float* c_d;
+	float *a_d;
+	float *b_d;
+	float *c_d;
 
-	cudaMalloc((void **) &a_d, n);
-	cudaMalloc((void **) &b_d, n);
-	cudaMalloc((void **) &c_d, n);
+	cudaMalloc((void **)&a_d, n);
+	cudaMalloc((void **)&b_d, n);
+	cudaMalloc((void **)&c_d, n);
 
 	cudaMemcpy(a_d, a_h.data(), n, cudaMemcpyHostToDevice);
 	cudaMemcpy(b_d, b_h.data(), n, cudaMemcpyHostToDevice);
-	
+
 	// kernel logic goes here ***
 	vecAddKernel(a_d, b_d, c_d, n);
 
@@ -47,15 +51,17 @@ void vecAdd(std::vector<float> a_h, std::vector<float> b_h, std::vector<float> c
 	cudaFree(c_d);
 }
 
-int main() {
+int main()
+{
 
 	std::vector<float> a = {1, 2, 3, 4};
 	std::vector<float> b = {1, 2, 3, 4};
 	std::vector<float> c = {0, 0, 0, 0};
 
-	vecAdd(a, b, c );
+	vecAdd(a, b, c);
 
-	for(const float f : c) {
+	for (const float f : c)
+	{
 		printf("%f\n", f);
 	}
 
