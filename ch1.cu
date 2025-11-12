@@ -27,25 +27,33 @@ __global__ void vecAddKernel(float *a, float *b, float *c, int n)
 	}
 }
 
-void vecAdd(std::vector<float> a_h, std::vector<float> b_h, std::vector<float> c_h)
+void vecAdd(std::vector<float> &a_h, std::vector<float> &b_h, std::vector<float> &c_h)
 {
-	size_t n = c_h.size();
+	size_t bytes = c_h.size() * sizeof(float);
 
 	float *a_d;
 	float *b_d;
 	float *c_d;
 
-	cudaMalloc((void **)&a_d, n);
-	cudaMalloc((void **)&b_d, n);
-	cudaMalloc((void **)&c_d, n);
+	cudaMalloc((void **)&a_d, bytes);
+	cudaMalloc((void **)&b_d, bytes);
+	cudaMalloc((void **)&c_d, bytes);
 
-	cudaMemcpy(a_d, a_h.data(), n, cudaMemcpyHostToDevice);
-	cudaMemcpy(b_d, b_h.data(), n, cudaMemcpyHostToDevice);
+	cudaMemcpy(a_d, a_h.data(), bytes, cudaMemcpyHostToDevice);
+	cudaMemcpy(b_d, b_h.data(), bytes, cudaMemcpyHostToDevice);
 
-	// kernel logic goes here ***
-	vecAddKernel(a_d, b_d, c_d, n);
+	int threads = 32;
+	int blocks = (c_h.size() + threads - 1) / threads;
+	vecAddKernel<<<threads, blocks>>>(a_d, b_d, c_d, bytes);
 
-	cudaMemcpy(c_h.data(), c_d, n, cudaMemcpyDeviceToHost);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess)
+	{
+		fprintf(stderr, "Kernel launch error! : %s\n", cudaGetErrorString(err));
+	}
+	cudaDeviceSynchronize();
+
+	cudaMemcpy(c_h.data(), c_d, bytes, cudaMemcpyDeviceToHost);
 	cudaFree(a_d);
 	cudaFree(b_d);
 	cudaFree(c_d);
