@@ -42,7 +42,12 @@ void vecAdd(std::vector<float> &a_h, std::vector<float> &b_h, std::vector<float>
 	cudaMemcpy(a_d, a_h.data(), bytes, cudaMemcpyHostToDevice);
 	cudaMemcpy(b_d, b_h.data(), bytes, cudaMemcpyHostToDevice);
 
+	// just make up a reasonable thread count (its the amount of threads in a given block)
 	int threads = 32;
+
+	// determine amount of blocks necessary by considering the amount of data needed to process
+	// - so if i gotta do 4 floats, then 4 + 32 - 1 is 35, / 32 is 1.whatever which gets us 1 by truncation.
+	// - if it was 1000 floats you could choose 256 threads and do (1000 + 255) / 256 = ~4ish
 	int blocks = (c_h.size() + threads - 1) / threads;
 	vecAddKernel<<<threads, blocks>>>(a_d, b_d, c_d, bytes);
 
