@@ -20,7 +20,7 @@
 // this gets ran per thread (a lot)
 __global__ void vecAddKernel(float *a, float *b, float *c, int n)
 {
-	// this is a leetgpu problem (first one)
+	// this is a leetgpu problem (first one
 	int globalIdx = threadIdx.x + blockIdx.x * blockDim.x;
 	if (globalIdx < n)
 	{
@@ -81,3 +81,31 @@ int main()
 
 	return 0;
 }
+// exercises:
+
+// 1. mapping thread/block index flatly is blockIdx.x * blockDim.x + threadIdx.x
+
+// 2. the first element to process supposing we were adding 2 adjacent indices at a time would be blockIdx.x*blockDim.x+threadIdx.x + 2
+
+// 3. each block will be processing 2 * blockDim.x consecutive elements that form two sections. meaning 1 block has to do 2 blocks worth of operations.
+// all threads in a block have to finish the first half before the block of threads can start on the 2nd half of the data. the expression for mapping
+// the thread/block indices to the data idx of the FIRST element is globalIdx = blockIdx.x * BlockDim.x * 2 + threadIdx.
+
+// 4. vector length = 8000, blockDim.x = 1024, minimum number of threads in the grid would have to be 8192.
+
+// 5. v * sizeof(int) produces the amount of memory necessary to store v integers.
+
+// 6. in cudaMalloc you would use (void **) &A_d to create a floating-point ptr variable that points at the area in memory on the device with the floating point data you want.
+
+// 7. cudaMemcpy(A_d, A_h, 3000, cudaMemcpyHostToDevice); <--- takes 3000 bytes of whatever and copies it from the host to device.
+
+// 8. cudaError_t err; <--- how to define a cudaError_t lol
+
+// 9.
+// a) 128 (second param is threads per block)
+// b) 200,064 threads in grid (solved the first param)
+// c) 1,563 (truncate decimal, not rounded)
+// d) all of them (200,064)
+// e) 200,000
+
+// 10. "Dude, didn't you know you can label a function as both __device__ AND __host__ and the preprocessor will make the duplicate functions automatically???"
